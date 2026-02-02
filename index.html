@@ -130,13 +130,12 @@
 
     <script>
         // --- CONFIGURATION ---
-        // Format: Teks yang muncul per klik. Gunakan "\n" di dalam array untuk ganti baris otomatis.
         const textSegments = [
             "Hai Zia,", "\n",
             "I'm so glad", "you're in my life.", "\n",
-            "Happy Valentines day,", "My Love! 🤍", "\n",
+            "Happy Valentines Day,", "My Love! 🤍", "\n",
+            "I hope you like", "my gifts for you!", "🤗", "\n",
             "Many Love", "for you", "in the future.", "\n",
-            "I hope", "you like", "my gifts for you! 🤗", "\n",
             "With Love,", "\n",
             "Leo"
         ];
@@ -157,11 +156,11 @@
         function resize() {
             width = canvas.width = window.innerWidth;
             height = canvas.height = window.innerHeight;
-            initStars(); // Re-init stars on resize
+            initStars(); 
         }
         window.addEventListener('resize', resize);
         
-        // --- BACKGROUND STARS (AESTHETIC PARTICLES) ---
+        // --- BACKGROUND STARS ---
         class Star {
             constructor() {
                 this.x = Math.random() * width;
@@ -170,18 +169,14 @@
                 this.blinkSpeed = Math.random() * 0.05 + 0.01;
                 this.alpha = Math.random();
                 this.direction = Math.random() > 0.5 ? 1 : -1;
-                // Movement (Floating dust effect)
                 this.vx = (Math.random() - 0.5) * 0.2;
                 this.vy = (Math.random() - 0.5) * 0.2;
             }
             update() {
                 this.alpha += this.blinkSpeed * this.direction;
                 if (this.alpha >= 1 || this.alpha <= 0.2) this.direction *= -1;
-                
                 this.x += this.vx;
                 this.y += this.vy;
-
-                // Wrap around screen
                 if(this.x < 0) this.x = width;
                 if(this.x > width) this.x = 0;
                 if(this.y < 0) this.y = height;
@@ -202,7 +197,6 @@
             }
         }
         
-        // Call init immediately
         resize(); 
 
         // --- FIREWORKS LOGIC ---
@@ -212,7 +206,7 @@
                 this.y = y;
                 this.targetX = targetX;
                 this.targetY = targetY;
-                this.speed = 3.5; // Sedikit lebih cepat
+                this.speed = 4; // Kecepatan roket
                 this.angle = Math.atan2(targetY - y, targetX - x);
                 this.velocity = {
                     x: Math.cos(this.angle) * this.speed,
@@ -255,7 +249,7 @@
                 this.alpha = 1;
                 this.friction = 0.95;
                 this.gravity = 0.04;
-                this.decay = Math.random() * 0.015 + 0.01; // Random decay for sparkle
+                this.decay = Math.random() * 0.015 + 0.01;
             }
             update() {
                 this.velocity.x *= this.friction;
@@ -279,11 +273,9 @@
         // --- ANIMATION LOOP ---
         function animate() {
             requestAnimationFrame(animate);
-            // Clear canvas with trail effect
-            ctx.fillStyle = 'rgba(5, 10, 20, 0.3)'; // Sesuai warna bg
+            ctx.fillStyle = 'rgba(5, 10, 20, 0.3)'; 
             ctx.fillRect(0, 0, width, height);
 
-            // Draw Background Stars First
             stars.forEach(star => {
                 star.update();
                 star.draw();
@@ -291,10 +283,7 @@
 
             // Intro Fireworks
             if (step === 0 && Math.random() < 0.03) {
-                const startX = Math.random() * width;
-                const targetX = Math.random() * width;
-                const targetY = Math.random() * (height / 2);
-                fireworks.push(new Firework(startX, height, targetX, targetY));
+                launchRandomFirework();
             }
 
             // Update Fireworks
@@ -307,12 +296,19 @@
                 }
             });
 
-            // Update Explosion Particles
+            // Update Particles
             particles.forEach((p, index) => {
                 p.update();
                 p.draw();
                 if(p.alpha <= 0) particles.splice(index, 1);
             });
+        }
+
+        function launchRandomFirework() {
+            const startX = Math.random() * width;
+            const targetX = Math.random() * width;
+            const targetY = Math.random() * (height / 2);
+            fireworks.push(new Firework(startX, height, targetX, targetY));
         }
 
         function createExplosion(x, y) {
@@ -325,22 +321,24 @@
 
         // --- INTERACTION LOGIC ---
         
-        // 1. Timer Intro
         setTimeout(() => {
             if(step === 0) {
                 step = 1;
                 document.getElementById('instruction').style.opacity = 1;
             }
-        }, 4000); // 4 detik intro
+        }, 4000);
 
-        // 2. Click Handler
         document.body.addEventListener('click', (e) => {
-            createExplosion(e.clientX, e.clientY); // Always sparkle on click
+            // 1. Sparkle di posisi klik (Mouse click effect)
+            createExplosion(e.clientX, e.clientY);
 
+            // 2. NEW: Launch background firework pada setiap klik
+            launchRandomFirework();
+
+            // 3. Text Logic
             if (step === 1) {
                 document.getElementById('instruction').style.opacity = 0;
                 step = 2;
-                // Langsung munculkan kata pertama saat klik instruksi
                 revealNextSegment(); 
             } else if (step === 2) {
                 revealNextSegment();
@@ -353,26 +351,20 @@
                 const container = document.getElementById('text-area');
 
                 if (text === "\n") {
-                    // Jika ketemu penanda baris baru, tambah <br>
                     container.appendChild(document.createElement("br"));
                     segmentIndex++;
-                    // Langsung panggil lagi untuk menampilkan kata setelah enter agar tidak perlu klik kosong
                     revealNextSegment(); 
                 } else {
                     const span = document.createElement('span');
                     span.textContent = text;
                     container.appendChild(span);
-                    
-                    // Trigger animation
                     requestAnimationFrame(() => {
                         span.classList.add('visible');
                     });
-                    
                     segmentIndex++;
                 }
             }
 
-            // Cek selesai
             if (segmentIndex >= textSegments.length) {
                 step = 3;
                 setTimeout(showFinalSurprise, 800);
@@ -386,7 +378,6 @@
                 heartContainer.style.opacity = 1;
             }, 100);
 
-            // Celebration Fireworks
             let count = 0;
             const celebrate = setInterval(() => {
                 createExplosion(Math.random() * width, Math.random() * height);
