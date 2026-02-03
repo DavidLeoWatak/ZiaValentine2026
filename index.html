@@ -16,9 +16,9 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background-color: #050a14; /* Biru malam sangat gelap */
+            background-color: #050a14;
             background: radial-gradient(circle at bottom, #0d1b2a 0%, #000000 100%);
-            font-family: 'Dancing Script', cursive; /* Font Utama */
+            font-family: 'Dancing Script', cursive;
             color: #e0f7fa;
         }
 
@@ -66,7 +66,6 @@
             color: #e1f5fe;
         }
 
-        /* Span animasi untuk teks muncul */
         .message span {
             display: inline-block;
             opacity: 0;
@@ -117,6 +116,10 @@
 </head>
 <body>
 
+    <audio id="bg-music" loop>
+        <source src="musik.mp3" type="audio/mpeg">
+    </audio>
+
     <canvas id="canvas"></canvas>
 
     <div id="content">
@@ -129,30 +132,27 @@
     </div>
 
     <script>
-        // --- CONFIGURATION ---
         const textSegments = [
-            "Hai Zia,", "\n",
-            "I'm so glad", "you're in my life.", "\n",
-            "Happy Valentines Day,", "My Love! 🤍", "\n",
-            "I hope you like", "my gifts for you!", "🤗", "\n",
+            "Hai Zia,", "I'm so glad", "you're in my life.", "\n",
+            "Happy Valentines", "day My Love! 🤍", "\n",
             "Many Love", "for you", "in the future.", "\n",
             "With Love,", "\n",
             "Leo"
         ];
         
-        const colors = ['#00e5ff', '#2979ff', '#00b0ff', '#80d8ff', '#e1f5fe']; // Palette Biru Aesthetic
+        const colors = ['#00e5ff', '#2979ff', '#00b0ff', '#80d8ff', '#e1f5fe'];
 
-        // --- VARIABLES ---
         let step = 0; 
         let segmentIndex = 0;
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
+        const music = document.getElementById('bg-music'); // Ambil elemen audio
+        
         let width, height;
         let particles = [];
         let fireworks = [];
-        let stars = []; // Background particles
+        let stars = [];
 
-        // --- RESIZE ---
         function resize() {
             width = canvas.width = window.innerWidth;
             height = canvas.height = window.innerHeight;
@@ -160,7 +160,6 @@
         }
         window.addEventListener('resize', resize);
         
-        // --- BACKGROUND STARS ---
         class Star {
             constructor() {
                 this.x = Math.random() * width;
@@ -199,14 +198,13 @@
         
         resize(); 
 
-        // --- FIREWORKS LOGIC ---
         class Firework {
             constructor(x, y, targetX, targetY) {
                 this.x = x;
                 this.y = y;
                 this.targetX = targetX;
                 this.targetY = targetY;
-                this.speed = 4; // Kecepatan roket
+                this.speed = 4;
                 this.angle = Math.atan2(targetY - y, targetX - x);
                 this.velocity = {
                     x: Math.cos(this.angle) * this.speed,
@@ -270,7 +268,6 @@
             }
         }
 
-        // --- ANIMATION LOOP ---
         function animate() {
             requestAnimationFrame(animate);
             ctx.fillStyle = 'rgba(5, 10, 20, 0.3)'; 
@@ -281,12 +278,10 @@
                 star.draw();
             });
 
-            // Intro Fireworks
             if (step === 0 && Math.random() < 0.03) {
                 launchRandomFirework();
             }
 
-            // Update Fireworks
             fireworks.forEach((fw, index) => {
                 if(fw.update()) {
                     createExplosion(fw.x, fw.y);
@@ -296,7 +291,6 @@
                 }
             });
 
-            // Update Particles
             particles.forEach((p, index) => {
                 p.update();
                 p.draw();
@@ -318,8 +312,6 @@
                 particles.push(new Particle(x, y, color));
             }
         }
-
-        // --- INTERACTION LOGIC ---
         
         setTimeout(() => {
             if(step === 0) {
@@ -329,13 +321,15 @@
         }, 4000);
 
         document.body.addEventListener('click', (e) => {
-            // 1. Sparkle di posisi klik (Mouse click effect)
             createExplosion(e.clientX, e.clientY);
-
-            // 2. NEW: Launch background firework pada setiap klik
             launchRandomFirework();
 
-            // 3. Text Logic
+            // --- MUSIK DIMULAI DI SINI ---
+            if (music.paused) {
+                music.play().catch(error => console.log("Gagal memutar musik otomatis:", error));
+                music.volume = 0.5; // Set volume 50%
+            }
+
             if (step === 1) {
                 document.getElementById('instruction').style.opacity = 0;
                 step = 2;
